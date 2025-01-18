@@ -2,7 +2,6 @@ import os
 import time
 import subprocess
 import shutil
-import json
 
 # Configuration
 WATCH_FOLDER = r"D:\PC\Pictures\Camera Roll"  # Folder to watch for new pictures
@@ -13,41 +12,31 @@ UPLOAD_URL = "https://projects.benax.rw/f/o/r/e/a/c/h/p/r/o/j/e/c/t/s/4e8d42b606
 os.makedirs(UPLOADED_FOLDER, exist_ok=True)
 
 def upload_file(file_path):
-   
+    #Uploads a file using curl and checks the success status."""
     try:
         # Curl command for file upload
         command = [
             "curl",
             "-X", "POST",
-            "-F", f"file=@{file_path}",
+            "-F", f"imageFile=@{file_path}",
             UPLOAD_URL
         ]
         # Execute the curl command and capture the output
         result = subprocess.run(command, capture_output=True, text=True)
 
-        print(f"Raw response for {file_path}: {result.stdout.strip()}")
-
         # Check curl execution success
-        if result.returncode != 0:
-            print(f"Error uploading {file_path}: {result.stderr.strip()}")
+        if result.returncode == 0:
+            print(f"Successfully uploaded: {file_path}")
+            return True
+        else:
+            print(f"Failed to upload: {file_path}\nError: {result.stderr.strip()}")
             return False
-
-        # Parse the server response
-        try:
-            response = json.loads(result.stdout.strip())
-            if response.get("message") == "File uploaded successfully!":
-                print(f"Upload successful: {file_path}")
-                return True
-            else:
-                print(f"Failed to upload {file_path}. Server response: {response}")
-        except json.JSONDecodeError:
-            print(f"Invalid JSON response from server for {file_path}: {result.stdout.strip()}")
     except Exception as e:
         print(f"Exception during upload of {file_path}: {e}")
-    return False
+        return False
 
 def monitor_and_upload():
-    #Monitors a folder for new pictures, uploads them to the server, and moves them to the uploaded folder.
+    #Monitors a folder for new pictures, uploads them to the server, and moves them to the uploaded folder."""
     print(f"Starting monitoring for folder: {WATCH_FOLDER}")
     uploaded_files = set()  # Track uploaded files to avoid duplicate uploads
 
